@@ -16,10 +16,17 @@ impl Cache {
         if let Some(v) = self.data.get(&key) {
             return *v;
         }
-        tokio::time::sleep(Duration::from_millis(100)).await;
-        let v = key * 2;
+
+        tokio::time::sleep(Duration::from_millis(250)).await;
+
+        let v = key * 100;
+
         self.data.insert(key, v);
         v
+    }
+
+    async fn cache_size(&self) -> usize {
+        self.data.len()
     }
 }
 
@@ -28,13 +35,15 @@ async fn main() {
     let clock = Instant::now();
     let mut cache = Cache::new();
 
-    let keys = vec![1, 2, 3, 4, 1, 2, 5, 6];
+    let keys = vec![1, 2, 3, 4, 1, 2, 3, 4];
 
     // TODO: make this concurrent with tokio::spawn, joining the handles at the end.
     for k in keys {
         let v = cache.get(k).await;
         println!("{k} -> {v}");
     }
+
+    println!("Cache size: {}", cache.cache_size().await);
 
     println!("Done in {:.2?}", clock.elapsed());
 }
